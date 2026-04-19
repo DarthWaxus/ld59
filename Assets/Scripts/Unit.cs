@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using TMPro;
 using UnityEngine;
 
 public class Unit : MonoBehaviour
@@ -19,6 +20,7 @@ public class Unit : MonoBehaviour
     public Vector3 characterFallForce;
     public SimpleDamageFlash damageFlash;
     bool damaged = false;
+    public TMP_Text hpText;
 
     private void Update()
     {
@@ -74,6 +76,7 @@ public class Unit : MonoBehaviour
         if (dead || damaged) return;
 
         this.hp += hp;
+        if(hpText) hpText.text = this.hp.ToString();
         if (hp < 0) Sound.I.Play("Hurt1");
         if (this.hp <= 0)
         {

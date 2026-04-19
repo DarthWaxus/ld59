@@ -32,6 +32,12 @@ public class Boss : MonoBehaviour
 
     public GameObject obstaclePrefab;
     public GameObject enemyPrefab;
+    
+    public GameObject targetPrefab;
+    public float obstacleFlyDuration = 0.7f;
+    public float arcHeight = 5f;
+    
+    private Player player;
 
 // занятые линии врагами
     private HashSet<float> occupiedLines = new HashSet<float>();
@@ -65,7 +71,11 @@ public class Boss : MonoBehaviour
 
     private void Start()
     {
+        player = FindAnyObjectByType<Player>();
+    }
 
+    public void Init()
+    {
         StartCoroutine(Flag1Loop()); // obstacles
         StartCoroutine(Flag2Loop()); // enemies
 
@@ -83,9 +93,50 @@ public class Boss : MonoBehaviour
 
             yield return StartCoroutine(RotateSingle(flag1, angle));
 
-            float x = AngleToX(angle)+Random.Range(-1,2);
-            SpawnObstacle(x);
+            yield return StartCoroutine(SpawnObstacleWithTelegraph());
         }
+    }
+    
+    private IEnumerator SpawnObstacleWithTelegraph()
+    {
+        if (player == null) yield break;
+
+        Vector3 targetPos = player.transform.position;
+        targetPos.z += Random.Range(2,4);
+        targetPos.x += Random.Range(-1,2);
+
+        GameObject target = Instantiate(targetPrefab, targetPos, Quaternion.identity);
+
+        yield return new WaitForSeconds(3f);
+
+        Vector3 startPos = transform.position;
+        GameObject obstacle = Instantiate(obstaclePrefab, startPos, Quaternion.identity);
+
+        float time = 0f;
+
+        while (time < obstacleFlyDuration)
+        {
+            float t = time / obstacleFlyDuration;
+
+            Vector3 pos = Vector3.Lerp(startPos, targetPos, t);
+
+            float height = Mathf.Sin(t * Mathf.PI) * arcHeight;
+            pos.y += height;
+
+            obstacle.transform.position = pos;
+
+            time += Time.deltaTime;
+            yield return null;
+        }
+
+        obstacle.transform.position = targetPos;
+        MovingWithWorld mww = obstacle.GetComponent<MovingWithWorld>();
+        mww.moving = true;
+        if(mww.dust) mww.dust.Play();
+        TrailRenderer tr = obstacle.GetComponent<TrailRenderer>();
+        if (tr) tr.enabled = false;
+
+        Destroy(target);
     }
     
     private IEnumerator Flag2Loop()

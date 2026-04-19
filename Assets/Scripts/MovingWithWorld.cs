@@ -2,12 +2,11 @@ using UnityEngine;
 
 public class MovingWithWorld : MonoBehaviour
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
+    public bool moving = false;
+    public ParticleSystem dust;
     void Start()
     {
     }
-
-    // Update is called once per frame
     void Update()
     {
         transform.Translate(Vector3.back * Game.I.speed * Time.deltaTime);

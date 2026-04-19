@@ -8,8 +8,9 @@ public class Player : MonoBehaviour
 {
     private Unit unit;
     public CinemachineCamera cam;
-    public float maxTiltAngle = 10f; // максимальный наклон
-    public float tiltSpeed = 5f; // скорость наклона
+    public float maxTiltAngle = 10f;
+    public float tiltSpeed = 5f;
+    public bool inputEnabled = false;
 
 
     private float currentTilt = 0f;
@@ -23,16 +24,19 @@ public class Player : MonoBehaviour
 
     public void OnMove(InputValue value)
     {
+        if(!inputEnabled) return;
         unit.moveInput = value.Get<Vector2>();
     }
 
     public void OnAttack(InputValue value)
     {
+        if(!inputEnabled) return;
         unit.Attack();
     }
 
     public void OnAttackAlt(InputValue value)
     {
+        if(!inputEnabled) return;
         unit.AttackAlt();
     }
 
@@ -49,17 +53,8 @@ public class Player : MonoBehaviour
 
     private void TiltCamera()
     {
-        // целевой наклон (влево/вправо)
         float targetTilt = -unit.moveInput.x * maxTiltAngle;
-
-        // плавное изменение
         currentTilt = Mathf.Lerp(currentTilt, targetTilt, Time.deltaTime * tiltSpeed);
-
-        // применяем к камере (наклон по Z)
         cam.transform.localRotation = Quaternion.Euler(0f, 0f, currentTilt);
-    }
-
-    public void PlayHitSound()
-    {
     }
 }
