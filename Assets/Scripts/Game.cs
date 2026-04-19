@@ -23,7 +23,7 @@ public class Game : MonoBehaviour
 
     public void StartGame()
     {
-        obstacleSpawner.StartSpawnObstacles();
+        // obstacleSpawner.StartSpawnObstacles();
     }
 
     private void OnGameOver()

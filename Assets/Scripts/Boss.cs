@@ -1,4 +1,3 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -15,7 +14,7 @@ public class Boss : MonoBehaviour
     private List<List<Vector3>> rotations;
     private bool rotating = false;
 
-    private float[] possibleAngles = new float[] { 0f, 45f, 90f, -45f, -90f };
+    private List<float> angles = new List<float> { 90f, 45f, 0f, -45f, -90f };
     
     public Transform startPoint;
     public Transform endPoint;
@@ -25,10 +24,38 @@ public class Boss : MonoBehaviour
     public Slider progressSlider;
 
     public Worm worm;
+    
+    public float obstacleDelay = 2f;
+    public float enemyDelay = 3f;
+
+    public float minDelayMultiplier = 0.5f; // ускорение к концу
+
+    public GameObject obstaclePrefab;
+    public GameObject enemyPrefab;
+
+// занятые линии врагами
+    private HashSet<float> occupiedLines = new HashSet<float>();
 
     private void Awake()
     {
         Events.GameOverEvent.AddListener(OnGameOver);
+        Events.UnitDeadEvent.AddListener(OnUnitDead);
+    }
+    
+    private void OnUnitDead(Unit unit)
+    {
+        float x = unit.transform.position.x;
+
+        if (occupiedLines.Contains(x))
+        {
+            occupiedLines.Remove(x);
+        }
+    }
+    
+    private float GetDelayMultiplier()
+    {
+        float t = progressSlider != null ? progressSlider.value : 0f;
+        return Mathf.Lerp(1f, minDelayMultiplier, t);
     }
 
     private void OnGameOver()
@@ -38,72 +65,104 @@ public class Boss : MonoBehaviour
 
     private void Start()
     {
-        rotations = new List<List<Vector3>>();
 
-        // генерим все комбинации для двух флагов
-        foreach (float angle1 in possibleAngles)
-        {
-            foreach (float angle2 in possibleAngles)
-            {
-                rotations.Add(new List<Vector3>
-                {
-                    new Vector3(0f, 0f, angle1),
-                    new Vector3(0f, 0f, angle2)
-                });
-            }
-        }
+        StartCoroutine(Flag1Loop()); // obstacles
+        StartCoroutine(Flag2Loop()); // enemies
 
-        // запускаем цикл
-        StartCoroutine(RotationLoop());
         StartCoroutine(MoveAlongZ());
     }
-
-    private IEnumerator RotationLoop()
+    
+    private IEnumerator Flag1Loop()
     {
         while (true)
         {
-            yield return new WaitForSeconds(delayBetweenRotations);
+            float delay = obstacleDelay * GetDelayMultiplier();
+            yield return new WaitForSeconds(delay);
 
-            if (!rotating)
-            {
-                yield return StartCoroutine(RotateFlags());
-            }
+            float angle = angles[Random.Range(0, angles.Count)];
+
+            yield return StartCoroutine(RotateSingle(flag1, angle));
+
+            float x = AngleToX(angle)+Random.Range(-1,2);
+            SpawnObstacle(x);
         }
     }
-
-    public IEnumerator RotateFlags()
+    
+    private IEnumerator Flag2Loop()
     {
-        rotating = true;
+        while (true)
+        {
+            float delay = enemyDelay * GetDelayMultiplier();
+            yield return new WaitForSeconds(delay);
 
-        // выбираем случайную комбинацию
-        var target = rotations[UnityEngine.Random.Range(0, rotations.Count)];
+            // фильтруем свободные линии
+            List<float> available = new List<float>();
 
-        Quaternion startRot1 = flag1.rotation;
-        Quaternion startRot2 = flag2.rotation;
+            foreach (float angle in angles)
+            {
+                float x = AngleToX(angle);
+                if (!occupiedLines.Contains(x))
+                {
+                    available.Add(angle);
+                }
+            }
 
-        Quaternion endRot1 = Quaternion.Euler(target[0]);
-        Quaternion endRot2 = Quaternion.Euler(target[1]);
+            if (available.Count == 0)
+                continue;
+
+            float rot = available[Random.Range(0, available.Count)];
+
+            yield return StartCoroutine(RotateSingle(flag2, rot));
+
+            float xPos = AngleToX(rot);
+
+            SpawnEnemy(xPos);
+            occupiedLines.Add(xPos);
+        }
+    }
+    
+    private float AngleToX(float angle)
+    {
+        if (angle == 90f) return -4f;
+        if (angle == 45f) return -2f;
+        if (angle == 0f) return 0f;
+        if (angle == -45f) return 2f;
+        if (angle == -90f) return 4f;
+
+        return 0f;
+    }
+    
+    private IEnumerator RotateSingle(Transform flag, float angle)
+    {
+        Quaternion startRot = flag.rotation;
+        Quaternion endRot = Quaternion.Euler(0f, 0f, angle);
 
         float time = 0f;
 
         while (time < rotateDuration)
         {
             float t = time / rotateDuration;
-
-            flag1.rotation = Quaternion.Lerp(startRot1, endRot1, t);
-            flag2.rotation = Quaternion.Lerp(startRot2, endRot2, t);
+            flag.rotation = Quaternion.Lerp(startRot, endRot, t);
 
             time += Time.deltaTime;
             yield return null;
         }
 
-        // гарантируем точное значение
-        flag1.rotation = endRot1;
-        flag2.rotation = endRot2;
-
-        rotating = false;
+        flag.rotation = endRot;
     }
     
+    private void SpawnObstacle(float x)
+    {
+        Vector3 pos = new Vector3(x, 0f, 50f);
+        Instantiate(obstaclePrefab, pos, Quaternion.identity);
+    }
+
+    private void SpawnEnemy(float x)
+    {
+        Vector3 pos = new Vector3(x, 0f, -2f);
+        Instantiate(enemyPrefab, pos, Quaternion.identity);
+    }
+   
     private IEnumerator MoveAlongZ()
     {
         float time = 0f;
