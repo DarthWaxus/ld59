@@ -1942,7 +1942,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a79441f348de89743a2939f4d699eac1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Runtime::UnityEngine.Rendering.Universal.UniversalAdditionalCameraData
-  m_RenderShadows: 1
+  m_RenderShadows: 0
   m_RequiresDepthTextureOption: 2
   m_RequiresOpaqueTextureOption: 2
   m_CameraType: 0
@@ -4063,8 +4063,16 @@ PrefabInstance:
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: -7768874125406461844, guid: 2d4ad065066aaec45afa0e4df417d0c1, type: 3}
+      propertyPath: moveBack
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -7768874125406461844, guid: 2d4ad065066aaec45afa0e4df417d0c1, type: 3}
       propertyPath: moveSpeed
       value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: -7768874125406461844, guid: 2d4ad065066aaec45afa0e4df417d0c1, type: 3}
+      propertyPath: moveForward
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 486438806864334802, guid: 2d4ad065066aaec45afa0e4df417d0c1, type: 3}
       propertyPath: m_LocalPosition.x
@@ -4121,7 +4129,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 6175540262389434695, guid: 2d4ad065066aaec45afa0e4df417d0c1, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
   m_SourcePrefab: {fileID: 100100000, guid: 2d4ad065066aaec45afa0e4df417d0c1, type: 3}
 --- !u!1001 &8140441080009858673
 PrefabInstance:
@@ -4193,7 +4204,7 @@ PrefabInstance:
       objectReference: {fileID: 2856631379967004583, guid: 213e3b60129b8e246ae2ecc5192befff, type: 3}
     - target: {fileID: 7582797844015500047, guid: 55aef8105cedb81488762441403e43f4, type: 3}
       propertyPath: moveDuration
-      value: 300
+      value: 200
       objectReference: {fileID: 0}
     - target: {fileID: 7582797844015500047, guid: 55aef8105cedb81488762441403e43f4, type: 3}
       propertyPath: targetPrefab
